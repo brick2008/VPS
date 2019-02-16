@@ -1,0 +1,10 @@
+[Unit]
+Description=Runs rdate hourly and on boot(service)
+After=network.target
+
+[Service]
+ExecStart=rdate -s time.nist.gov
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
