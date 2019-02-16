@@ -16,14 +16,16 @@ apt install vnstati
 
 chown -R www-data:www-data /var/www/html
 
-## rdate
+## rdate.timer rdate.service - NTP port(123/UDP) is blocked?use this!
 
 apt install rdate
 
-cp rdate.* to /etc/systemd/system
+cp rdate.timer rdate.service to /etc/systemd/system
 
 systemctl daemon-reload
 
 systemctl enable rdate.timer
 
 systemctl start rdate.timer
+
+## bench.sh - benchmark with bzip2 sha256 md5sum from @sayem314,simplify the code
