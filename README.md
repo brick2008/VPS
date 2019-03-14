@@ -20,6 +20,8 @@ cp rdate.timer rdate.service to /etc/systemd/system
 
 systemctl daemon-reload
 
+timedatectl set-ntp false
+
 systemctl enable rdate.timer
 
 systemctl start rdate.timer
