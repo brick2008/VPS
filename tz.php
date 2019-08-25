@@ -18,7 +18,7 @@ function __($message) {
 		'Port' => '端口',
 		'User' => '用户',
 		'Hostname' => '主机名称',
-		'Server Port' => '服务器端口',
+		'Server Port' => '端口',
 		'Prober Path' => '探针路径',
 		'Server Realtime Data' => '服务器实时数据',
 		'Time' => '当前时间',
@@ -140,63 +140,6 @@ function get_sockstat()
 	}
 
 	return $info;
-}
-
-function get_ip_location_cn($ip)
-{
-	if (function_exists('curl_init'))
-	{
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, "http://cn.ip.cn/?ip=" . $ip);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_USERAGENT, "curl/7.55.1");
-		$result = curl_exec($ch);
-		if (curl_getinfo($ch, CURLINFO_HTTP_CODE) != 200) {
-			$result = '';
-		}
-		curl_close($ch);
-	}
-	else
-	{
-		$options = array('http'=>array('method'=>"GET", 'header'=>"User-Agent: curl/7.55.1\r\n"));
-		$result = file_get_contents('http://cn.ip.cn/?ip=' . $ip, false, stream_context_create($options));
-		if ($result === false) {
-			$result = '';
-		}
-	}
-	$location = trim(substr($result, strrpos($result, '：')+3));
-	return substr($location, 0, 100);
-}
-
-function get_ip_location_us($ip)
-{
-	if (function_exists('curl_init'))
-	{
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, 'http://ip-api.com/csv/'.$ip);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		$result = curl_exec($ch);
-		curl_close($ch);
-		if (curl_getinfo($ch, CURLINFO_HTTP_CODE) != 200) {
-			$result = '';
-		}
-	}
-	else
-	{
-		$options = array('http'=>array(
-			'method'=>'GET',
-			'header'=>"User-Agent: curl/7.55.1\r\n"));
-		$result = file_get_contents('http://ip-api.com/csv/'.$ip, false, stream_context_create($options));
-		if ($result === false) {
-			$result = '';
-		}
-	}
-
-	$parts = explode(',', $result);
-	$city = str_replace('"', '', $parts[5]);
-	$isp = str_replace('"', '', $parts[10]);
-
-	return $city . ' - ' . $isp;
 }
 
 function get_cpuinfo()
@@ -505,12 +448,6 @@ switch ($_GET['method']) {
 	case 'phpinfo':
 		phpinfo();
 		exit;
-	case 'iploc':
-		$remote_addr = get_remote_addr();
-		$zh = (substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2) === 'zh');
-		$iploc = $zh ? get_ip_location_cn($remote_addr) : get_ip_location_us($remote_addr);
-		echo json_encode($iploc);
-		exit;
 	case 'sysinfo':
 		echo json_encode(array(
 			'stat' => get_stat(),
@@ -582,16 +519,7 @@ body {
 
 <div class="container">
 
-<table>
-<?php if ($_SERVER['HTTP_HOST'] == 'lab.phus.lu'): ?>
-	<tr>
-	<th><a href="?method=phpinfo">PHP Info</a></th>
-	<th><a href="/files/"><?php __('Download'); ?></a></th>
-	<th>🔒<a href="//gateway.<?php echo $_SERVER['HTTP_HOST'];?>"><?php __('Gateway'); ?></a></th>
-	<th>🔒<a href="//grafana.<?php echo $_SERVER['HTTP_HOST'];?>/dashboard/db/system-overview?orgId=1"><?php __('Monitor'); ?></a></th>
-	</tr>
-<?php endif ?>
-</table>
+<table></table>
 
 <table>
 	<tr>
@@ -601,7 +529,7 @@ body {
 	<td><?php __('Hostname'); ?></td>
 	<td colspan="3"><?php $os = explode(' ', $uname); echo $os[1];?>(<?php echo $server_addr; ?>)&nbsp;&nbsp;
 		<button class="link" onclick="alert(navigator.userAgent)"><?php __('Client Infomation'); ?>:</button>
-		<?php echo $remote_addr;?>
+		<span id="remoteip"><?php echo $remote_addr;?></span>
 		<span id="iploc"></span>
 	</td>
 	</tr>
@@ -612,12 +540,12 @@ body {
 	<tr>
 	<td><?php __('OS'); ?></td>
 	<td><?php echo $distname; ?></td>
-	<td><?php __('Server Software'); ?></td>
-	<td><?php echo $_SERVER['SERVER_SOFTWARE'];?></td>
-	</tr>
-	<tr>
 	<td><?php __('Language'); ?></td>
 	<td><?php echo $LC_CTYPE=='C'?'POSIX':$LC_CTYPE;?></td>
+	</tr>
+	<tr>
+	<td><?php __('Server Software'); ?></td>
+	<td><?php echo $_SERVER['SERVER_SOFTWARE'] . " php/" . phpversion();?></td>
 	<td><?php __('Server Port'); ?></td>
 	<td><?php echo $_SERVER['SERVER_PORT'];?></td>
 	</tr>
@@ -907,14 +835,20 @@ $ = function(s) {
 	return dom.get(document.getElementById(s.substring(1)))
 };
 
-$.getJSON = function (url, f) {
-	var xhr = null;
-	if (window.XMLHttpRequest) {
-		xhr = new XMLHttpRequest();
-	} else {
-		xhr = new ActiveXObject('MSXML2.XMLHTTP.3.0');
+$.getData = function (url, f) {
+	var xhr = new XMLHttpRequest();
+	xhr.open('GET', url, true)
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState == 4 && xhr.status == 200) {
+			f(xhr.responseText)
+		}
 	}
-	xhr.open('GET', url + '&_=' + new Date().getTime(), true)
+	xhr.send()
+}
+
+$.getJSON = function (url, f) {
+	var xhr = new XMLHttpRequest();
+	xhr.open('GET', url, true)
 	xhr.onreadystatechange = function() {
 		if (xhr.readyState == 4 && xhr.status == 200) {
 			if (window.JSON) {
@@ -991,8 +925,15 @@ function getSysinfo() {
 }
 
 function getIploc() {
-	$.getJSON('?method=iploc', function (data) {
-		$("#iploc").html(data?'('+data+')':'')
+	$.getData('https://myip.ipip.net/', function (data) {
+		remoteip = document.getElementById('remoteip').innerText
+		ip = data.match(/\d+\.\d+\.\d+\.\d+/)[0]
+		iploc = data.substring(data.lastIndexOf('：')+1).replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '')
+		if (ip !== remoteip) {
+			$("#iploc").html('(检测到分流代理，'+ data + ')')
+		} else {
+			$("#iploc").html('('+iploc+')')
+		}
 	})
 }
 
