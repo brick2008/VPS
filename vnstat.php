@@ -8,7 +8,7 @@ exec("vnstati -vs -o vnstati-vs.png;vnstati -d -o vnstati-d.png;vnstati -m -o vn
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>vnstati</title>
 <style>
-body{text-align:center}
+body{background-color:#202124;text-align:center}
 </style>
 </head>
 <body>
