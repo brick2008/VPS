@@ -1,6 +1,4 @@
-## VPS
-
-Web interface for vnStat 
+## Web interface for vnStat 
 
 Strict security checks have not been performed, Please use with caution in public or production environments.
 
