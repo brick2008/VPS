@@ -1,7 +1,8 @@
 ## VPS
 
+Web interface for vnStat 
 
-vnStat - a network traffic monitor for Linux and BSD
+Strict security checks have not been performed, Please use with caution in public or production environments.
 
 ****
 E-mail:brick2008@gmail.com
@@ -10,9 +11,13 @@ E-mail:brick2008@gmail.com
 ### vnstat.php
 
 apt install vnstati
+
 OR
+
 apk add vnstat
 
 chown -R www-data:www-data /var/www/html
+
 OR
+
 chown -R nobody:nobody /var/www/html
