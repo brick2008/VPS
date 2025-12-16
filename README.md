@@ -13,9 +13,3 @@ apt install vnstati
 OR
 
 apk add vnstat
-
-chown -R www-data:www-data /var/www/html
-
-OR
-
-chown -R nobody:nobody /var/www/html
