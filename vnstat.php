@@ -1,14 +1,14 @@
 <?php
 $PATH = "/tmp"; 
 $images = ['vs.png', 'd.png', 'm.png'];
+$server_name = $_SERVER['SERVER_NAME'];
 
 if (isset($_GET['f']) && in_array($_GET['f'], $images)) {
 	header('Content-Type: image/png');
     @readfile("{$PATH}/{$_GET['f']}");
-    exit();
 }
 
-exec("vnstati -ne -vs -o {$PATH}/vs.png;vnstati -nh -d -o {$PATH}/d.png;vnstati -nh -m -o {$PATH}/m.png");
+exec("vnstati --headertext $server_name -ne -vs -o {$PATH}/vs.png;vnstati -nh -d -o {$PATH}/d.png;vnstati -nh -m -o {$PATH}/m.png");
 
 ?>
 <html lang="en-US">
@@ -16,7 +16,7 @@ exec("vnstati -ne -vs -o {$PATH}/vs.png;vnstati -nh -d -o {$PATH}/d.png;vnstati 
 <meta HTTP-EQUIV="refresh" CONTENT="120">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>vnstati</title>
+<title>vnstat</title>
 <style>
 body{text-align:center}
 </style>
